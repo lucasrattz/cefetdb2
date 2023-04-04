@@ -17,7 +17,9 @@ func NewServer(listenPort string) *Server {
 func (s *Server) Start() error {
 	r := chi.NewRouter()
 
-	r.Mount("/api", apiRouter{}.Routes())
+	r.Mount("/api", apiResource{
+		useCORS: true,
+	}.Routes())
 
-	return http.ListenAndServe(":"+s.listenPort, nil)
+	return http.ListenAndServe(":"+s.listenPort, r)
 }
