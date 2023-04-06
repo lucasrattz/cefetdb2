@@ -1,7 +1,8 @@
-package server
+package api
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"cefetdb2api/types"
@@ -11,6 +12,7 @@ import (
 )
 
 type apiResource struct {
+	storer  types.Storer
 	useCORS bool
 }
 
@@ -44,6 +46,7 @@ var (
 	contextKeySemesterID = types.ContextKey("semesterID")
 )
 
+// Middleware to get semester ID from URL
 func (ar apiResource) semesterMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		semesterID := chi.URLParam(r, contextKeySemesterID.Value())
@@ -57,10 +60,37 @@ func (ar apiResource) semesterMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (ar apiResource) getSemesters(w http.ResponseWriter, r *http.Request)      {}
-func (ar apiResource) getAllDisciplines(w http.ResponseWriter, r *http.Request) {}
-func (ar apiResource) getAllFiles(w http.ResponseWriter, r *http.Request)       {}
+//
+// Handlers
+//
 
+// GET /semesters
+func (ar apiResource) getSemesters(w http.ResponseWriter, r *http.Request) {}
+
+// GET /disciplines
+func (ar apiResource) getAllDisciplines(w http.ResponseWriter, r *http.Request) {}
+
+// GET /files
+func (ar apiResource) getAllFiles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	ctx := r.Context()
+
+	files, err := ar.storer.GetAllFiles(ctx)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(types.ErrorResponse{ErrorMessage: err.Error()})
+		return
+	}
+
+	json.NewEncoder(w).Encode(files)
+}
+
+// GET /semesters/{semesterID}/disciplines
 func (ar apiResource) getDisciplinesBySemester(w http.ResponseWriter, r *http.Request) {}
-func (ar apiResource) getFilesByDiscipline(w http.ResponseWriter, r *http.Request)     {}
-func (ar apiResource) uploadFile(w http.ResponseWriter, r *http.Request)               {}
+
+// GET /semesters/{semesterID}/{disciplineID}/files
+func (ar apiResource) getFilesByDiscipline(w http.ResponseWriter, r *http.Request) {}
+
+// POST /semesters/{semesterID}/{disciplineID}/files
+func (ar apiResource) uploadFile(w http.ResponseWriter, r *http.Request) {}

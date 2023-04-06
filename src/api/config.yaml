@@ -1,0 +1,7 @@
+server:
+  host: "localhost"
+  port: 3500
+
+drive_auth:
+  credentials_file_path: "../../credentials.json" # Path relative to main.go file
+  path_to_save_token: "../../token.json" # Path relative to main.go file

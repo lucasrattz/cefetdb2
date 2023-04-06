@@ -1,6 +1,7 @@
-package server
+package api
 
 import (
+	"cefetdb2api/storage"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -16,8 +17,12 @@ func NewServer(listenPort string) *Server {
 
 func (s *Server) Start() error {
 	r := chi.NewRouter()
+	c := storage.NewDriveClient()
+
+	storer := storage.NewDriveStorer(c)
 
 	r.Mount("/api", apiResource{
+		storer:  storer,
 		useCORS: true,
 	}.Routes())
 
