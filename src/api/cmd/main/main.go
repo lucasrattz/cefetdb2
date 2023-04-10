@@ -15,17 +15,15 @@ func main() {
 		log.Fatalf("Unable to read config file: %v", err)
 	}
 
-	port := cfg.Server.Port
 	credentialsFilePath := cfg.DriveAuth.CredentialsFilePath
 
 	c := types.NewOAuthCredentials()
 	c, err = c.GetCredentialsFromFile(credentialsFilePath)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server := api.NewServer(port)
-	log.Printf("Starting server on port %s", port)
+	server := api.NewServer(cfg, c)
+	log.Printf("Starting server on %s:%s", cfg.Server.Host, cfg.Server.Port)
 	log.Fatal(server.Start())
 }

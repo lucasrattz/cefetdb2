@@ -2,9 +2,11 @@ package types
 
 type MimeType string
 
+const (
+	FolderMimeType string = "'application/vnd.google-apps.folder'"
+	FileMimeType   string = "'application/vnd.google-apps.file'"
+)
+
 func (m MimeType) IsFolder() bool {
-
-	folderMimeType := "application/vnd.google-apps.folder"
-
-	return string(m) == folderMimeType
+	return string(m) == FolderMimeType
 }

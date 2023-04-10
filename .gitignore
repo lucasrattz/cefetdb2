@@ -20,3 +20,6 @@ go.work
 # Drive API credentials
 **/credentials.json
 **/token.json
+
+# IDE files
+.idea

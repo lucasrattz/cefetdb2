@@ -2,32 +2,32 @@ package storage
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-	"os"
 
 	"cefetdb2api/config"
 	"cefetdb2api/storage/auth"
+	"cefetdb2api/types"
 
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
 
-type DriveClient struct{}
-
-func NewDriveClient() *DriveClient {
-	return &DriveClient{}
+type DriveClient struct {
+	credentials types.OAuthCredentials
 }
 
-func (c *DriveClient) GetDriveService(ctx context.Context) (*drive.Service, error) {
-	cfg := config.NewConfig()
-	cfg.ReadConfigFile()
-	credentialsFile := cfg.DriveAuth.CredentialsFilePath
+func NewDriveClient(c types.OAuthCredentials) *DriveClient {
+	return &DriveClient{c}
+}
+
+func (c *DriveClient) GetDriveService(ctx context.Context, cfg *config.Config) (*drive.Service, error) {
 	tokenFile := cfg.DriveAuth.TokenPath
 
-	b, err := os.ReadFile(credentialsFile)
+	b, err := json.Marshal(c.credentials)
 	if err != nil {
-		return nil, errors.New("unable to read drive client credendials file")
+		return nil, errors.New("unable to marshal drive client credendials")
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.

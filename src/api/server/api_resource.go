@@ -2,9 +2,9 @@ package api
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
+	"cefetdb2api/config"
 	"cefetdb2api/types"
 
 	"github.com/go-chi/chi"
@@ -12,25 +12,26 @@ import (
 )
 
 type apiResource struct {
-	storer  types.Storer
-	useCORS bool
+	storer types.Storer
+	cfg    *config.Config
 }
 
 func (ar apiResource) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	if ar.useCORS {
-		corsMiddleware := cors.New(cors.Options{
-			AllowedOrigins: []string{"http://localhost:3500"},
-			AllowedMethods: []string{"GET", "POST"},
+	if ar.cfg.Server.UseCors {
+		corsHandler := cors.New(cors.Options{
+			AllowedOrigins: []string{ar.cfg.Server.Host + ar.cfg.Server.Port},
+			AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+			AllowedHeaders: []string{"Accept", "Content-Type"},
 			MaxAge:         300,
-		})
-		r.Use(corsMiddleware.Handler)
+		}).Handler
+		r.Use(corsHandler)
 	}
 
 	r.Get("/semesters", ar.getSemesters)
 	r.Get("/disciplines", ar.getAllDisciplines)
-	r.Get("/files", ar.getAllFiles)
+	r.Get("/files", ar.getAllFiles().ServeHTTP)
 
 	r.Route("/semesters/{semesterID}", func(r chi.Router) {
 		r.Use(ar.semesterMiddleware)
@@ -59,38 +60,3 @@ func (ar apiResource) semesterMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-
-//
-// Handlers
-//
-
-// GET /semesters
-func (ar apiResource) getSemesters(w http.ResponseWriter, r *http.Request) {}
-
-// GET /disciplines
-func (ar apiResource) getAllDisciplines(w http.ResponseWriter, r *http.Request) {}
-
-// GET /files
-func (ar apiResource) getAllFiles(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	ctx := r.Context()
-
-	files, err := ar.storer.GetAllFiles(ctx)
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(types.ErrorResponse{ErrorMessage: err.Error()})
-		return
-	}
-
-	json.NewEncoder(w).Encode(files)
-}
-
-// GET /semesters/{semesterID}/disciplines
-func (ar apiResource) getDisciplinesBySemester(w http.ResponseWriter, r *http.Request) {}
-
-// GET /semesters/{semesterID}/{disciplineID}/files
-func (ar apiResource) getFilesByDiscipline(w http.ResponseWriter, r *http.Request) {}
-
-// POST /semesters/{semesterID}/{disciplineID}/files
-func (ar apiResource) uploadFile(w http.ResponseWriter, r *http.Request) {}
