@@ -3,6 +3,7 @@ package api
 import (
 	"cefetdb2api/types"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -110,57 +111,19 @@ func (ar apiResource) getFilesByDiscipline() http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-/* **TO-DO**
-
 // POST /semesters/{semesterID}/{disciplineID}/files
 func (ar apiResource) uploadFile() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		ctx := r.Context()
 
-		//disciplineID := ctx.Value(contextKeyDisciplineID).(string)
-		//semesterID := ctx.Value(contextKeySemesterID).(string)
+		disciplineID := ctx.Value(contextKeyDisciplineID).(string)
 
-		if err := r.ParseMultipartForm(5 << 20); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(types.ErrorResponse{ErrorMessage: err.Error()})
-			return
-		} // Set 5MB as max file size
-
-		file, _, err := r.FormFile("file")
-		if err != nil {
+		if err := r.ParseMultipartForm(5 << 20); err != nil { // Store up to 5MB in memory
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(types.ErrorResponse{ErrorMessage: err.Error()})
 			return
 		}
-
-		defer file.Close()
-		res, err := ar.storer.UploadFile(ctx, file)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(types.ErrorResponse{ErrorMessage: err.Error()})
-			return
-		}
-		json.NewEncoder(w).Encode(res)
-	}
-
-	return http.HandlerFunc(fn)
-}
-
-
-func (ar apiResource) uploadFile() http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		ctx := r.Context()
-
-		//disciplineID := ctx.Value(contextKeyDisciplineID).(string)
-		//semesterID := ctx.Value(contextKeySemesterID).(string)
-
-		if err := r.ParseMultipartForm(5 << 20); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(types.ErrorResponse{ErrorMessage: err.Error()})
-			return
-		} // Set 5MB as max file size
 
 		file, mHeader, err := r.FormFile("file")
 		if err != nil {
@@ -183,12 +146,20 @@ func (ar apiResource) uploadFile() http.Handler {
 			return
 		}
 
-		log.Printf("Name: %#v\n", mHeader.Filename)
-		log.Printf("Size: %#v\n", mHeader.Size)
-		log.Printf("MIME: %#v\n", http.DetectContentType(header))
+		fileMimeType := http.DetectContentType(header)
+
+		f := types.NewUploadableFile(file, mHeader.Filename, mHeader.Size, fileMimeType, disciplineID)
+
+		if err := f.Validate(); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(types.ErrorResponse{
+				ErrorMessage: errors.Join(err...).Error(),
+			})
+			return
+		}
 
 		defer file.Close()
-		res, err := ar.storer.UploadFile(ctx, file)
+		res, err := ar.storer.UploadFile(ctx, f)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(types.ErrorResponse{ErrorMessage: err.Error()})
@@ -199,4 +170,3 @@ func (ar apiResource) uploadFile() http.Handler {
 
 	return http.HandlerFunc(fn)
 }
-*/

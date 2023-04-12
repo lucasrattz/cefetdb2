@@ -10,5 +10,5 @@ type Storer interface {
 	GetAllFiles(context.Context) ([]FileResponse, error)
 	GetDisciplinesBySemester(context.Context, string) ([]FolderResponse, error)
 	GetFilesByDiscipline(context.Context, string) ([]FileResponse, error)
-	//UploadFile(context.Context, io.Reader) (FileResponse, error)
+	UploadFile(context.Context, UploadableFile) (FileResponse, error)
 }

@@ -4,7 +4,6 @@ import (
 	"cefetdb2api/config"
 	"cefetdb2api/types"
 	"context"
-	"io"
 
 	"google.golang.org/api/drive/v3"
 )
@@ -44,7 +43,8 @@ func (d DriveStorer) GetSemesters(ctx context.Context) ([]types.FolderResponse, 
 		return nil, err
 	}
 
-	r, err := srv.Files.List().Q("properties has {key='type' and value='Semester'}").Fields("nextPageToken, files(id, name)").Do()
+	r, err := srv.Files.List().
+		Q("properties has {key='type' and value='Semester'}").Fields("nextPageToken, files(id, name)").Do()
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,8 @@ func (d DriveStorer) GetAllDisciplines(ctx context.Context) ([]types.FolderRespo
 		return nil, err
 	}
 
-	r, err := srv.Files.List().Q("properties has {key='type' and value='Discipline'}").Fields("nextPageToken, files(id, name)").Do()
+	r, err := srv.Files.List().
+		Q("properties has {key='type' and value='Discipline'}").Fields("nextPageToken, files(id, name)").Do()
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +113,8 @@ func (d DriveStorer) GetFilesByDiscipline(ctx context.Context, disciplineID stri
 	}
 
 	parentFolderID := f.Files[0].Id
-	r, err := srv.Files.List().Q("'" + parentFolderID + "' in parents").Fields("nextPageToken, files(id, name)").Do()
+	r, err := srv.Files.List().
+		Q("'" + parentFolderID + "' in parents").Fields("nextPageToken, files(id, name)").Do()
 	if err != nil {
 		return nil, err
 	}
@@ -127,16 +129,22 @@ func (d DriveStorer) GetFilesByDiscipline(ctx context.Context, disciplineID stri
 }
 
 // TO-DO
-func (d DriveStorer) UploadFile(ctx context.Context, file io.Reader) (types.FileResponse, error) {
+func (d DriveStorer) UploadFile(ctx context.Context, f types.UploadableFile) (types.FileResponse, error) {
 	srv, err := d.driveClient.GetDriveService(ctx, d.cfg)
 	if err != nil {
 		return types.FileResponse{}, err
 	}
 
+	var query = "properties has {key='type' and value='Discipline'} and name='" + f.ParentName + "'"
+	p, err := srv.Files.List().Q(query).Fields("nextPageToken, files(id)").Do()
+	if err != nil {
+		return types.FileResponse{}, err
+	}
+
 	r, err := srv.Files.Create(&drive.File{
-		Name:    "teste.pdf",
-		Parents: []string{"root"},
-	}).Media(file).Do()
+		Name:    f.Name,
+		Parents: []string{p.Files[0].Id},
+	}).ResumableMedia(ctx, f.File, f.Size, f.MimeType).Do()
 	if err != nil {
 		return types.FileResponse{}, err
 	}
