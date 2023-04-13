@@ -21,7 +21,7 @@ func (ar apiResource) Routes() chi.Router {
 
 	if ar.cfg.Server.UseCors {
 		corsHandler := cors.New(cors.Options{
-			AllowedOrigins: []string{ar.cfg.Server.Host + ar.cfg.Server.Port},
+			AllowedOrigins: []string{ar.cfg.Server.Host + ":" + ar.cfg.Server.Port},
 			AllowedMethods: []string{"GET", "POST", "OPTIONS"},
 			AllowedHeaders: []string{"Accept", "Content-Type"},
 			MaxAge:         300,
