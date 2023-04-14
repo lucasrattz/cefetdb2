@@ -22,7 +22,7 @@ go.work
 **/token.json
 
 # Configuration file
-**/*.example.yaml
+**/config.yaml
 
 # IDE files
 .idea
