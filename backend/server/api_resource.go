@@ -36,11 +36,12 @@ func (ar apiResource) Routes() chi.Router {
 	r.Route("/semesters/{semesterID}", func(r chi.Router) {
 		r.Use(ar.semesterMiddleware)
 		r.Get("/disciplines", ar.getDisciplinesBySemester().ServeHTTP)
-		r.Route("/disciplines/{disciplineID}", func(r chi.Router) {
-			r.Use(ar.disciplineMiddleware)
-			r.Get("/files", ar.getFilesByDiscipline().ServeHTTP)
-			r.Post("/files", ar.uploadFile().ServeHTTP)
-		})
+	})
+
+	r.Route("/disciplines/{disciplineID}", func(r chi.Router) {
+		r.Use(ar.disciplineMiddleware)
+		r.Get("/files", ar.getFilesByDiscipline().ServeHTTP)
+		r.Post("/files", ar.uploadFile().ServeHTTP)
 	})
 
 	return r
