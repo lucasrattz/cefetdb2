@@ -21,7 +21,7 @@ func (ar apiResource) Routes() chi.Router {
 
 	if ar.cfg.Server.UseCors {
 		corsHandler := cors.New(cors.Options{
-			AllowedOrigins: []string{ar.cfg.Server.FrontendHost},
+			AllowedOrigins: []string{ar.cfg.Server.Host + ":" + ar.cfg.Server.Port},
 			AllowedMethods: []string{"GET", "POST", "OPTIONS"},
 			AllowedHeaders: []string{"Accept", "Content-Type"},
 			MaxAge:         300,
@@ -36,12 +36,11 @@ func (ar apiResource) Routes() chi.Router {
 	r.Route("/semesters/{semesterID}", func(r chi.Router) {
 		r.Use(ar.semesterMiddleware)
 		r.Get("/disciplines", ar.getDisciplinesBySemester().ServeHTTP)
-	})
-
-	r.Route("/disciplines/{disciplineID}", func(r chi.Router) {
-		r.Use(ar.disciplineMiddleware)
-		r.Get("/files", ar.getFilesByDiscipline().ServeHTTP)
-		r.Post("/files", ar.uploadFile().ServeHTTP)
+		r.Route("/disciplines/{disciplineID}", func(r chi.Router) {
+			r.Use(ar.disciplineMiddleware)
+			r.Get("/files", ar.getFilesByDiscipline().ServeHTTP)
+			r.Post("/files", ar.uploadFile().ServeHTTP)
+		})
 	})
 
 	return r
