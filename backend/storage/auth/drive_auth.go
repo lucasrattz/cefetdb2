@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"cefetdb2api/types"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 
@@ -27,7 +29,23 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 		return nil, err
 	}
 	defer f.Close()
+
+	byteValue, _ := io.ReadAll(f)
+	var payload types.Token
+	err = json.Unmarshal(byteValue, &payload)
+	if err != nil {
+		return nil, err
+	}
+
+	expiry, err := payload.GetExpiryInTime()
+	if err != nil {
+		return nil, err
+	}
+
 	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
+	tok.AccessToken = payload.AccessToken
+	tok.RefreshToken = payload.RefreshToken
+	tok.TokenType = payload.TokenType
+	tok.Expiry = expiry
 	return tok, err
 }
