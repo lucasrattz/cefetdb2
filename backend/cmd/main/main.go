@@ -24,6 +24,6 @@ func main() {
 	}
 
 	server := api.NewServer(cfg, c)
-	log.Printf("Starting server on %s:%s", cfg.Server.Host, cfg.Server.Port)
+	log.Printf("Starting server on http://localhost:%s", cfg.Server.Port)
 	log.Fatal(server.Start())
 }

@@ -8,9 +8,9 @@ import (
 
 type Config struct {
 	Server struct {
-		Host    string `yaml:"host"`
-		Port    string `yaml:"port"`
-		UseCors bool   `yaml:"use_cors"`
+		FrontendHost string `yaml:"frontend_host"`
+		Port         string `yaml:"port"`
+		UseCors      bool   `yaml:"use_cors"`
 	} `yaml:"server"`
 
 	DriveAuth struct {
