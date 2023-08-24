@@ -21,8 +21,5 @@ go.work
 **/credentials.json
 **/token.json
 
-# Configuration file
-**/config.yaml
-
 # IDE files
 .idea

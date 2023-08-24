@@ -1,5 +1,5 @@
 server:
-  frontend_host: "http://localhost:3000"
+  host: "http://localhost"
   port: 3500
   use_cors: true
 
