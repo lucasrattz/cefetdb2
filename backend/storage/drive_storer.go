@@ -128,7 +128,6 @@ func (d DriveStorer) GetFilesByDiscipline(ctx context.Context, disciplineID stri
 	return files, nil
 }
 
-// TO-DO
 func (d DriveStorer) UploadFile(ctx context.Context, f types.UploadableFile) (types.FileResponse, error) {
 	srv, err := d.driveClient.GetDriveService(ctx, d.cfg)
 	if err != nil {
